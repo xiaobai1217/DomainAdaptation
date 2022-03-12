@@ -1,4 +1,4 @@
-# Domain-Adaptation-Demo
+# Code for Audio-Adaptive Activity Recognition Across Video Domains
 
 **This is the demo code for training the audio-adaptive model with RGB and audio modalities on EPIC-Kitchens dataset, reproducing an mean accuracy of 59.2%. All code will be released once accepted.**
 
