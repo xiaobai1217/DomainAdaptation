@@ -1,6 +1,8 @@
 # Code for Audio-Adaptive Activity Recognition Across Video Domains
 
 ## EPIC-Kitchens
+
+### RGB and audio
 **This is the demo code for training the audio-adaptive model with RGB and audio modalities on EPIC-Kitchens dataset, reproducing an mean accuracy of 59.2%.**
 
 * First download the data following the code provided by an existing work https://github.com/jonmun/MM-SADA-code
@@ -25,6 +27,11 @@ cudatoolkit 10.1.243
 sh bash.sh
 ```
 
+### Optical flow and audio
+
 ## CharadesEgo
 
+To be uploaded in March, 2022
+
 ## ActorShift
+To be uploaded in March, 2022
