@@ -1,4 +1,4 @@
-# Code for Audio-Adaptive Activity Recognition Across Video Domains
+# Audio-Adaptive Activity Recognition Across Video Domains
 
 ## EPIC-Kitchens
 * Prepare the audio files (.wav) from the videos:
