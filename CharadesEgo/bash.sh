@@ -1,0 +1,11 @@
+#!/bin/bash
+python train_audio_only.py
+python extract_vggsound_features.py
+python get_audio_cluster_feature.py
+python get_audio_pred_on_train.py
+python get_unlikely_cls_per_video.py
+python get_per_class_frequency.py
+python train_re_al_att.py
+python train_re_al_att_finetune.py
+python train_projection.py
+python train_projection_finetune.py
