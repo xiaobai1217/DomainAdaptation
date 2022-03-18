@@ -195,17 +195,26 @@
 
 	<p> </p>
 
-	<center>
-		<table align=center width=850px>
-			<tr>
-				<td width=260px>
-					<center>
-						<img class="round" style="width:500px" src="./resources/1st-figure.png"/>
+
+
+	<table align=center width=1100px>
+  			  <tr>
+ 	              <td width=370px>
+  					<center>
+  	                	<img src = "./resources/1st-figure.png" height="520px"></img>
+  	                	<br>
 					</center>
-				</td>
-			</tr>
-		</table>
-	</center>
+  	              </td> 
+		  		  <table align=center width=1100px>
+					<tr>
+		              <td align=center width=1100px>
+		              <span style="font-size:15px"><b>We recognize activities under domain shifts, caused by change of scenery, camera viewpoint or actor, with the aid of sound. </b></span>
+					  </td>
+					</tr>
+				  </table>
+				<br>
+                </tr>
+  		  </table>
 
 
 
@@ -237,51 +246,73 @@
 		<center>
 			<tr>
 				<td>
-					We train our audio-adaptive model in two stages using videos from source and target domains with accompanying audio. In the first stage we train our audio-adaptive encoder that uses audio to adapt a visual encoder to be more robust to distribution shifts. In the second stage, we train our audio-infused recognizer using pseudo-labels from the audio-adaptive encoder for the target domain and the ground-truth labels for the source domain. The audio-infused recognizer maps the source and target domains into a common space and fuses audio and visual features to produce an activity prediction for either domain
+					We train our audio-adaptive model in two stages using videos from source and target domains with accompanying audio. In the first stage we train our <b>audio-adaptive encoder</b> that uses audio to adapt a visual encoder to be more robust to distribution shifts. In the second stage, we train our <b>audio-infused recognizer</b> using pseudo-labels from the audio-adaptive encoder for the target domain and the ground-truth labels for the source domain. The audio-infused recognizer maps the source and target domains into a common space and fuses audio and visual features to produce an activity prediction for either domain
 
 				</td>
 			</tr>
 		</center>
 	</table>
 
-	<table align=center width=800px>
-		<tr>
-			<td align=center width=800px>
-				<center>
-					<td><img class="round" style="width:800px" src="./resources/encoder.png"/></td>
-				</center>
-			</td>
-		</tr>
-	</table>
 
-	<table align=center width=850px>
-		<center>
-			<tr>
-				<td>
-					Our audio-adaptive encoder consists of a visual encoder, an audio encoder and an audio-based attention module. Since the sounds of activities have less variance across domains, the encoder aims to extract visual features that are invariant but discriminative under domain shift with the aid of the audio encoder pretrained for audio-based activity recognition. To this end, we train the visual encoder and the attention module with two audio-adaptive learning methods: absent-activity learning or unlabeled target data and audio-balanced learning for labeled source data. The former aims to remove irrelevant parts of the visual features while the latter helps to handle the differing label distribution between domains. Once trained, for each video, we can extract an audio feature vector from the audio encoder and a series of visual features from the visual encoder with which to train our audio-infused recognizer 
-
-				</td>
-			</tr>
-		</center>
-	</table>
-
-	<center>
-		<table align=center width=850px>
-			<tr>
-				<td width=260px>
-					<center>
-						<img class="round" style="width:500px" src="./resources/transformer.png"/>
+	 <table align=center width=1100px>
+  			  <tr>
+ 	              <td width=700px>
+  					<center>
+  	                	<img src = "./resources/encoder.png" height="350px"></img>
+  	                	<br>
 					</center>
-				</td>
-			</tr>
-		</table>
-	</center>
+  	              </td> 
+		  		  <table align=center width=800px>
+					<tr>
+		              <td align=center width=600px>
+		              <span style="font-size:15px"><b>Audio-adaptive encoder for activity recognition under domain shift </b></span>
+					  </td>
+					</tr>
+				  </table>
+				<br>
+                </tr>
+  		  </table>
+
+						
+
 
 	<table align=center width=850px>
 		<center>
 			<tr>
 				<td>
-					While audio can help focus on the activity-relevant visual features, there is still a large difference between the appearance of activities in different domains. To further eliminate domain-specific visual features and fuse the activity cues from the audio and visual modalities, we propose the audio-infused recognizer. As shown in the above figure, we add domain embedding to encourage a common visual representation across domains. Then, an audio-adaptive class token is obtained from a series of activity sound feature vectors, considering both audio and visual features. It is sent into the transformer together with the visual features. By the transformer’s self attention, this token aggregates information from visual features with the domain-invariant audio activity cues for activity classification.
+					Our <b>audio-adaptive encoder</b> consists of a visual encoder, an audio encoder and an audio-based attention module. Since the sounds of activities have less variance across domains, the encoder aims to extract visual features that are invariant but discriminative under domain shift with the aid of the audio encoder pretrained for audio-based activity recognition. To this end, we train the visual encoder and the attention module with two audio-adaptive learning methods: absent-activity learning or unlabeled target data and audio-balanced learning for labeled source data. The former aims to remove irrelevant parts of the visual features while the latter helps to handle the differing label distribution between domains. Once trained, for each video, we can extract an audio feature vector from the audio encoder and a series of visual features from the visual encoder with which to train our audio-infused recognizer 
+
+				</td>
+			</tr>
+		</center>
+	</table>
+
+
+		<table align=center width=1100px>
+  			  <tr>
+ 	              <td width=370px>
+  					<center>
+  	                	<img src = "./resources/transformer.png" height="300px"></img>
+  	                	<br>
+					</center>
+  	              </td> 
+		  		  <table align=center width=1100px>
+					<tr>
+		              <td align=center width=1100px>
+		              <span style="font-size:15px"><b>Audio-infused recognizer. </b></span>
+					  </td>
+					</tr>
+				  </table>
+				<br>
+                </tr>
+  		  </table>
+
+
+	<table align=center width=850px>
+		<center>
+			<tr>
+				<td>
+					While audio can help focus on the activity-relevant visual features inside our audio-adaptive encoder, there is still a large difference between the appearance of activities in different domains. To further eliminate domain-specific visual features and fuse the activity cues from the audio and visual modalities, we propose the <b>audio-infused recognizer</b>. As shown in the above figure, we add domain embedding to encourage a common visual representation across domains. Then, an audio-adaptive class token is obtained from a series of activity sound feature vectors, considering both audio and visual features. It is sent into the transformer together with the visual features. By the transformer’s self attention, this token aggregates information from visual features with the domain-invariant audio activity cues for activity classification.
 
 				</td>
 			</tr>
