@@ -138,33 +138,33 @@
 <body>
 	<br>
 	<center>
-		<span style="font-size:36px">Creative and Descriptive Paper Title</span>
-		<table align=center width=600px>
-			<table align=center width=600px>
+		<span style="font-size:36px">Audio-Adaptive Activity Recognition Across Video Domains</span>
+		<table align=center width=800px>
+			<table align=center width=800px>
 				<tr>
-					<td align=center width=100px>
+					<td align=center width=200px>
 						<center>
 							<span style="font-size:24px"><a href="https://xiaobai1217.github.io">Yunhua Zhang</a></span>
 						</center>
 					</td>
-					<td align=center width=100px>
+					<td align=center width=200px>
 						<center>
 							<span style="font-size:24px"><a href="https://hazeldoughty.github.io/">Hazel Doughty</a></span>
 						</center>
 					</td>
-					<td align=center width=100px>
+					<td align=center width=200px>
 						<center>
 							<span style="font-size:24px"><a href="">Ling Shao</a></span>
 						</center>
 					</td>
-					<td align=center width=100px>
+					<td align=center width=200px>
 						<center>
 							<span style="font-size:24px"><a href="https://www.ceessnoek.info/">Cees G.M. Snoek</a></span>
 						</center>
 					</td>
 				</tr>
 			</table>
-			<table align=center width=250px>
+			<table align=center width=500px>
 				<tr>
 					<td align=center width=120px>
 						<center>
@@ -174,6 +174,11 @@
 					<td align=center width=120px>
 						<center>
 							<span style="font-size:24px"><a href='https://github.com/xiaobai1217/DomainAdaptation'>[GitHub]</a></span><br>
+						</center>
+					</td>
+					<td align=center width=220px>
+						<center>
+							<span style="font-size:24px"><a href='https://drive.google.com/file/d/11ubcWqu1CiHwXBrfM9Ln5w0Y1Bz6kyq4/view?usp=sharing'>[ActorShift Dataset]</a></span><br>
 						</center>
 					</td>
 				</tr>
@@ -193,6 +198,8 @@
 		</table>
 	</center>
 
+
+
 	<hr>
 
 	<table align=center width=850px>
@@ -205,22 +212,6 @@
 	</table>
 	<br>
 
-	<hr>
-	<center><h1>Talk</h1></center>
-	<p align="center">
-		<iframe width="660" height="395" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen align="center"></iframe>
-	</p>
-
-	<table align=center width=800px>
-		<br>
-		<tr>
-			<center>
-				<span style="font-size:28px"><a href=''>[Slides]</a>
-				</span>
-			</center>
-		</tr>
-	</table>
-	<hr>
 
 	<center><h1>Method</h1></center>
 
@@ -232,19 +223,67 @@
 			</tr>
 		</center>
 	</table>
-	<table align=center width=400px>
+
+	<table align=center width=850px>
+		<center>
+			<tr>
+				<td>
+					We train our audio-adaptive model in two stages using videos from source and target domains with accompanying audio. In the first stage we train our audio-adaptive encoder that uses audio to adapt a visual encoder to be more robust to distribution shifts. In the second stage, we train our audio-infused recognizer using pseudo-labels from the audio-adaptive encoder for the target domain and the ground-truth labels for the source domain. The audio-infused recognizer maps the source and target domains into a common space and fuses audio and visual features to produce an activity prediction for either domain
+
+				</td>
+			</tr>
+		</center>
+	</table>
+
+	<table align=center width=800px>
 		<tr>
-			<td align=center width=400px>
+			<td align=center width=800px>
 				<center>
-					<td><img class="round" style="width:450px" src="./resources/encoder.png"/></td>
+					<td><img class="round" style="width:800px" src="./resources/encoder.png"/></td>
 				</center>
 			</td>
 		</tr>
 	</table>
 
+	<table align=center width=850px>
+		<center>
+			<tr>
+				<td>
+					Our audio-adaptive encoder consists of a visual encoder, an audio encoder and an audio-based attention module. Since the sounds of activities have less variance across domains, the encoder aims to extract visual features that are invariant but discriminative under domain shift with the aid of the audio encoder pretrained for audio-based activity recognition. To this end, we train the visual encoder and the attention module with two audio-adaptive learning methods: absent-activity learning or unlabeled target data and audio-balanced learning for labeled source data. The former aims to remove irrelevant parts of the visual features while the latter helps to handle the differing label distribution between domains. Once trained, for each video, we can extract an audio feature vector from the audio encoder and a series of visual features from the visual encoder with which to train our audio-infused recognizer 
+
+				</td>
+			</tr>
+		</center>
+	</table>
+
+	<center>
+		<table align=center width=850px>
+			<tr>
+				<td width=260px>
+					<center>
+						<img class="round" style="width:500px" src="./resources/transformer.png"/>
+					</center>
+				</td>
+			</tr>
+		</table>
+	</center>
+
+	<table align=center width=850px>
+		<center>
+			<tr>
+				<td>
+					While audio can help focus on the activity-relevant visual features, there is still a large difference between the appearance of activities in different domains. To further eliminate domain-specific visual features and fuse the activity cues from the audio and visual modalities, we propose the audio-infused recognizer. As shown in the above figure, we add domain embedding to encourage a common visual representation across domains. Then, an audio-adaptive class token is obtained from a series of activity sound feature vectors, considering both audio and visual features. It is sent into the transformer together with the visual features. By the transformer’s self attention, this token aggregates information from visual features with the domain-invariant audio activity cues for activity classification.
+
+				</td>
+			</tr>
+		</center>
+	</table>
+
+
+
 	<br>
 	<hr>
-	<table align=center width=450px>
+	<table align=center width=800px>
 		<center><h1>Paper and Supplementary Material</h1></center>
 		<tr>
 			<td><a href=""><img class="layered-paper-big" style="height:175px" src="./resources/paper.png"/></a></td>

@@ -1,6 +1,11 @@
-@inproceedings{author20XXtitle,
-  title={Please cite me},
-  author={Author, First and Author, Second and Author, Third},
-  booktitle={Conference},
-  year={20XX}
+@inproceedings{ZhangCVPR2022,
+title = {Audio-Adaptive Activity Recognition Across Video Domains},
+author = {Yunhua Zhang and Hazel Doughty and Ling Shao and Cees G M Snoek},
+year = {2022},
+date = {2022-06-02},
+urldate = {2022-06-01},
+booktitle = {CVPR},
+keywords = {},
+pubstate = {published},
+tppubtype = {inproceedings}
 }
