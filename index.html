@@ -120,7 +120,7 @@
 <head>
 	<title>This is my paper title</title>
 	<meta property="og:image" content="Path to my teaser.png"/> <!-- Facebook automatically scrapes this. Go to https://developers.facebook.com/tools/debug/ if you update and want to force Facebook to rescrape. -->
-	<meta property="og:title" content="Creative and Descriptive Paper Title." />
+	<meta property="og:title" content="Audio-Adaptive Activity Recognition Across Video Domains" />
 	<meta property="og:description" content="Paper description." />
 
 	<!-- Get from Google Analytics -->
@@ -144,17 +144,22 @@
 				<tr>
 					<td align=center width=100px>
 						<center>
-							<span style="font-size:24px"><a href="https://en.wikipedia.org/wiki/James_J._Gibson">First Author</a></span>
+							<span style="font-size:24px"><a href="https://xiaobai1217.github.io">Yunhua Zhang</a></span>
 						</center>
 					</td>
 					<td align=center width=100px>
 						<center>
-							<span style="font-size:24px"><a href="https://en.wikipedia.org/wiki/James_J._Gibson">Second Author</a></span>
+							<span style="font-size:24px"><a href="https://hazeldoughty.github.io/">Hazel Doughty</a></span>
 						</center>
 					</td>
 					<td align=center width=100px>
 						<center>
-							<span style="font-size:24px"><a href="https://en.wikipedia.org/wiki/James_J._Gibson">Third Author</a></span>
+							<span style="font-size:24px"><a href="">Ling Shao</a></span>
+						</center>
+					</td>
+					<td align=center width=100px>
+						<center>
+							<span style="font-size:24px"><a href="https://www.ceessnoek.info/">Cees G.M. Snoek</a></span>
 						</center>
 					</td>
 				</tr>
@@ -168,7 +173,7 @@
 					</td>
 					<td align=center width=120px>
 						<center>
-							<span style="font-size:24px"><a href='https://github.com/richzhang/webpage-template'>[GitHub]</a></span><br>
+							<span style="font-size:24px"><a href='https://github.com/xiaobai1217/DomainAdaptation'>[GitHub]</a></span><br>
 						</center>
 					</td>
 				</tr>
@@ -181,15 +186,8 @@
 			<tr>
 				<td width=260px>
 					<center>
-						<img class="round" style="width:500px" src="./resources/teaser.png"/>
+						<img class="round" style="width:500px" src="./resources/1st-figure.png"/>
 					</center>
-				</td>
-			</tr>
-		</table>
-		<table align=center width=850px>
-			<tr>
-				<td>
-					This was a template originally made for <a href="http://richzhang.github.io/colorization/">Colorful Image Colorization</a>. The code can be found in this <a href="https://github.com/richzhang/webpage-template">repository</a>.
 				</td>
 			</tr>
 		</table>
@@ -201,7 +199,7 @@
 		<center><h1>Abstract</h1></center>
 		<tr>
 			<td>
-				This is my abstract.
+				This paper strives for activity recognition under domain shift, for example caused by change of scenery or camera viewpoint. The leading approaches reduce the shift in activity appearance by adversarial training and self-supervised learning. Different from these vision-focused works we leverage activity sounds for domain adaptation as they have less variance across domains and can reliably indicate which activities are not happening. We propose an audio-adaptive encoder and associated learning methods that discriminatively adjust the visual feature representation as well as addressing shifts in the semantic distribution. To further eliminate domain-specific features and include domain-invariant activity sounds for recognition, an audio-infused recognizer is proposed,  which effectively models the cross-modal interaction across domains. We also introduce the new task of actor shift, with a corresponding audio-visual dataset, to challenge our method with situations where the activity appearance changes dramatically. Experiments on this dataset, EPIC-Kitchens and CharadesEgo show the effectiveness of our approach. For instance, we achieve a 5% absolute improvement over previous works in EPIC-Kitchens.
 			</td>
 		</tr>
 	</table>
@@ -224,7 +222,7 @@
 	</table>
 	<hr>
 
-	<center><h1>Code</h1></center>
+	<center><h1>Method</h1></center>
 
 	<table align=center width=420px>
 		<center>
@@ -238,36 +236,21 @@
 		<tr>
 			<td align=center width=400px>
 				<center>
-					<td><img class="round" style="width:450px" src="./resources/method_diagram.png"/></td>
+					<td><img class="round" style="width:450px" src="./resources/encoder.png"/></td>
 				</center>
 			</td>
 		</tr>
 	</table>
-	<table align=center width=850px>
-		<center>
-			<tr>
-				<td>
-					Short description if wanted
-				</td>
-			</tr>
-		</center>
-	</table>
-	<table align=center width=800px>
-		<br>
-		<tr><center>
-			<span style="font-size:28px">&nbsp;<a href='https://github.com/richzhang/webpage-template'>[GitHub]</a>
-			</center>
-		</span>
-	</table>
+
 	<br>
 	<hr>
 	<table align=center width=450px>
 		<center><h1>Paper and Supplementary Material</h1></center>
 		<tr>
 			<td><a href=""><img class="layered-paper-big" style="height:175px" src="./resources/paper.png"/></a></td>
-			<td><span style="font-size:14pt">F. Author, S. Author, T. Author.<br>
-				<b>Creative and Descriptive Paper Title.</b><br>
-				In Conference, 20XX.<br>
+			<td><span style="font-size:14pt">Yunhua Zhang, Hazel Doughty, Ling Shao, Cees G.M. Snoek<br>
+				<b>Audio-Adaptive Activity Recognition Across Video Domains</b><br>
+				In CVPR, 2022.<br>
 				(hosted on <a href="">ArXiv</a>)<br>
 				<!-- (<a href="./resources/camera-ready.pdf">camera ready</a>)<br> -->
 				<span style="font-size:4pt"><a href=""><br></a>
@@ -280,7 +263,7 @@
 	<table align=center width=600px>
 		<tr>
 			<td><span style="font-size:14pt"><center>
-				<a href="./resources/bibtex.txt">[Bibtex]</a>
+				<a href="">[Bibtex]</a>
 			</center></td>
 		</tr>
 	</table>
