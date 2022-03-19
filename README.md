@@ -16,6 +16,13 @@ mmaction2 0.13.0
 cudatoolkit 10.1.243
 ```
 
+* Pretrained models
+
+The pretrained checkpoint for the audio model can be downloaded at wget http://www.robots.ox.ac.uk/~vgg/data/vggsound/models/H.pth.tar. 
+For the SlowFast model, we use the pretrained weights provided by mmaction2 for RGB modality, from this [link](https://download.openmmlab.com/mmaction/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth). 
+The Slow-Only model for optical flow modality can be downloaded at [link](https://download.openmmlab.com/mmaction/recognition/slowonly/slowonly_r50_8x8x1_256e_kinetics400_flow/slowonly_r50_8x8x1_256e_kinetics400_flow_20200704-6b384243.pth). 
+
+
 ### RGB and audio
 **This is the demo code for training the audio-adaptive model with RGB and audio modalities on EPIC-Kitchens dataset, reproducing an mean accuracy of 59.2%.**
 
