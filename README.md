@@ -29,6 +29,7 @@ cudatoolkit 10.1.243
 ```
 
 * Pretrained weights we used
+
 Audio model: [link](http://www.robots.ox.ac.uk/~vgg/data/vggsound/models/H.pth.tar) </br>
 SlowFast model for RGB modality: [link](https://download.openmmlab.com/mmaction/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth) </br>
 Slow-Only model for optical flow modality: [link](https://download.openmmlab.com/mmaction/recognition/slowonly/slowonly_r50_8x8x1_256e_kinetics400_flow/slowonly_r50_8x8x1_256e_kinetics400_flow_20200704-6b384243.pth)
@@ -36,7 +37,7 @@ Slow-Only model for optical flow modality: [link](https://download.openmmlab.com
 
 
 ### RGB and audio
-**This is the demo code for training the audio-adaptive model with RGB and audio modalities on EPIC-Kitchens dataset, reproducing an mean accuracy of 59.2%.**
+**This is the demo code for training the audio-adaptive model with RGB (SlowFast backbone) and audio modalities on EPIC-Kitchens dataset, reproducing an mean accuracy of 59.2%.**
 
 You need to change the data paths to yours in `dataloader_*.py`, `train_*.py`, `test_*.py` and `get_*.py`. 
 
@@ -53,7 +54,7 @@ sh bash.sh
 ```
 
 ### Optical flow and audio
-**This is the demo code for training the audio-adaptive model with optical flow and audio modalities on EPIC-Kitchens dataset, reproducing an mean accuracy of 53.9%.**
+**This is the demo code for training the audio-adaptive model with optical flow (Slow-Only backbone) and audio modalities on EPIC-Kitchens dataset, reproducing an mean accuracy of 53.9%.**
 
 You need to change the data paths to yours in `dataloader_*.py`, `train_*.py`, `test_*.py` and `get_*.py`. 
 
@@ -71,7 +72,7 @@ sh bash.sh
 ```
 
 ## CharadesEgo
-This code conducts semi-supervised domain adaptation with all the source (3rd-person view) data and half of the target (1st-person view) data, based on RGB and audio modalities, reproducing an mAP of 26.3%. 
+This code conducts semi-supervised domain adaptation with all the source (3rd-person view) data and half of the target (1st-person view) data, based on RGB (SlowFast backbone) and audio modalities, reproducing an mAP of 26.3%. 
 
 You need to change the data paths to yours in `dataloader_*.py`, `train_*.py`, `test_*.py` and `get_*.py`. 
 
