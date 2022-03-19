@@ -16,11 +16,11 @@ mmaction2 0.13.0
 cudatoolkit 10.1.243
 ```
 
-* Pretrained models
+* Pretrained weights we used
+Audio model: [link](http://www.robots.ox.ac.uk/~vgg/data/vggsound/models/H.pth.tar) </br>
+SlowFast model for RGB modality: [link](https://download.openmmlab.com/mmaction/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth)
+Slow-Only model for optical flow modality: [link](https://download.openmmlab.com/mmaction/recognition/slowonly/slowonly_r50_8x8x1_256e_kinetics400_flow/slowonly_r50_8x8x1_256e_kinetics400_flow_20200704-6b384243.pth)
 
-The pretrained checkpoint for the audio model can be downloaded at wget http://www.robots.ox.ac.uk/~vgg/data/vggsound/models/H.pth.tar. 
-For the SlowFast model, we use the pretrained weights provided by mmaction2 for RGB modality, from this [link](https://download.openmmlab.com/mmaction/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth). 
-The Slow-Only model for optical flow modality can be downloaded at [link](https://download.openmmlab.com/mmaction/recognition/slowonly/slowonly_r50_8x8x1_256e_kinetics400_flow/slowonly_r50_8x8x1_256e_kinetics400_flow_20200704-6b384243.pth). 
 
 
 ### RGB and audio
@@ -69,3 +69,20 @@ sh bash.sh
 ## ActorShift Dataset
 
 This dataset can be downloaded at https://uvaauas.figshare.com/articles/dataset/ActorShift_zip/19387046
+
+
+## Citation
+If you find the code useful in your research please cite:
+```
+@inproceedings{ZhangCVPR2022,
+title = {Audio-Adaptive Activity Recognition Across Video Domains},
+author = {Yunhua Zhang and Hazel Doughty and Ling Shao and Cees G M Snoek},
+year = {2022},
+date = {2022-06-02},
+urldate = {2022-06-01},
+booktitle = {CVPR},
+keywords = {},
+pubstate = {published},
+tppubtype = {inproceedings}
+}
+```
