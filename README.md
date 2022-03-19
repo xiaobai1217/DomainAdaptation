@@ -61,4 +61,4 @@ sh bash.sh
 
 ## ActorShift Dataset
 
-This dataset can be downloaded at https://drive.google.com/file/d/11ubcWqu1CiHwXBrfM9Ln5w0Y1Bz6kyq4/view?usp=sharing
+This dataset can be downloaded at https://uvaauas.figshare.com/articles/dataset/ActorShift_zip/19387046
