@@ -5,6 +5,10 @@ More info can be found on our [project page](https://xiaobai1217.github.io/Domai
 
 <img width="400" alt="1st-figure" src="https://user-images.githubusercontent.com/22721775/159116800-2df8b1f2-c622-4e4e-8e9a-53be7bc1ae93.png">
 
+## Demo Video
+
+<iframe width="800" height="450" src="https://youtube.com/embed/Lh3gb6NMhB4" frameborder="0" allowfullscreen></iframe>
+
 ## EPIC-Kitchens
 * Prepare the audio files (.wav) from the videos:
 
