@@ -1,6 +1,9 @@
-# Audio-Adaptive Activity Recognition Across Video Domains
+# Audio-Adaptive Activity Recognition Across Video Domains (CVPR 2022)
 
 More info can be found on our [project page](https://xiaobai1217.github.io/DomainAdaptation/)
+
+
+<img width="617" alt="1st-figure" src="https://user-images.githubusercontent.com/22721775/159116800-2df8b1f2-c622-4e4e-8e9a-53be7bc1ae93.png">
 
 ## EPIC-Kitchens
 * Prepare the audio files (.wav) from the videos:
