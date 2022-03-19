@@ -1,5 +1,7 @@
 # Audio-Adaptive Activity Recognition Across Video Domains
 
+More info can be found on our [project page](https://xiaobai1217.github.io/DomainAdaptation/)
+
 ## EPIC-Kitchens
 * Prepare the audio files (.wav) from the videos:
 
@@ -79,6 +81,10 @@ sh bash.sh
 
 This dataset can be downloaded at https://uvaauas.figshare.com/articles/dataset/ActorShift_zip/19387046
 
+
+## Contact
+
+If you have any questions, you can send an email to y.zhang9@uva.nl
 
 ## Citation
 If you find the code useful in your research please cite:
