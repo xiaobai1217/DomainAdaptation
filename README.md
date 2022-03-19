@@ -7,7 +7,10 @@ More info can be found on our [project page](https://xiaobai1217.github.io/Domai
 
 ## Demo Video
 
-<iframe width="800" height="450" src="https://youtube.com/embed/Lh3gb6NMhB4" frameborder="0" allowfullscreen></iframe>
+
+[![Watch the video](https://user-images.githubusercontent.com/22721775/159116907-5e4f934c-9ec9-41b2-acb4-7b59c8219cb6.png)](https://youtube.com/embed/Lh3gb6NMhB4)
+
+
 
 ## EPIC-Kitchens
 * Prepare the audio files (.wav) from the videos:
