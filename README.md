@@ -38,6 +38,43 @@ mmaction2 0.13.0
 cudatoolkit 10.1.243
 ```
 
+* The directory structure should be modified to match:
+
+```
+├── rgb
+|   ├── train
+|   |   ├── D1
+|   |   |   ├── P08_01
+|   |   |   |     ├── frame_0000000000.jpg
+|   |   |   |     ├── ...
+|   |   |   ├── P08_02
+|   |   |   ├── ...
+|   |   ├── D2
+|   |   ├── D3
+|   ├── test
+|   |   ├── D1
+|   |   ├── D2
+|   |   ├── D3
+
+
+├── flow
+|   ├── train
+|   |   ├── D1
+|   |   |   ├── P08_01 
+|   |   |   |   ├── u
+|   |   |   |   |   ├── frame_0000000000.jpg
+|   |   |   |   |   ├── ...
+|   |   |   |   ├── v
+|   |   |   ├── P08_02
+|   |   |   ├── ...
+|   |   ├── D2
+|   |   ├── D3
+|   ├── test
+|   |   ├── D1
+|   |   ├── D2
+|   |   ├── D3
+```
+
 
 ### RGB and audio
 **This is the demo code for training the audio-adaptive model with RGB (SlowFast backbone) and audio modalities on EPIC-Kitchens dataset, reproducing an mean accuracy of 59.2%.**
