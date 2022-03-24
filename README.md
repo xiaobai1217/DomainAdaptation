@@ -10,9 +10,16 @@ More info can be found on our [project page](https://xiaobai1217.github.io/Domai
 
 [![Watch the video](https://user-images.githubusercontent.com/22721775/159116907-5e4f934c-9ec9-41b2-acb4-7b59c8219cb6.png)](https://youtube.com/embed/Lh3gb6NMhB4)
 
+## Pretrained weights we used
 
+Audio model: [link](http://www.robots.ox.ac.uk/~vgg/data/vggsound/models/H.pth.tar) </br>
+SlowFast model for RGB modality: [link](https://download.openmmlab.com/mmaction/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth) </br>
+Slow-Only model for optical flow modality: [link](https://download.openmmlab.com/mmaction/recognition/slowonly/slowonly_r50_8x8x1_256e_kinetics400_flow/slowonly_r50_8x8x1_256e_kinetics400_flow_20200704-6b384243.pth)
 
 ## EPIC-Kitchens
+
+*There are two streams in total, one is the audio-adaptive model with RGB and audio modalities, and the other is the audio-adaptive model with optical flow and audio modalities. We average the predictions from the two streams in the end for an mean accuracy of 61.0%. * 
+
 * Prepare the audio files (.wav) from the videos:
 
 ```
@@ -27,13 +34,6 @@ mmcv-full 1.2.7
 mmaction2 0.13.0
 cudatoolkit 10.1.243
 ```
-
-* Pretrained weights we used
-
-Audio model: [link](http://www.robots.ox.ac.uk/~vgg/data/vggsound/models/H.pth.tar) </br>
-SlowFast model for RGB modality: [link](https://download.openmmlab.com/mmaction/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth) </br>
-Slow-Only model for optical flow modality: [link](https://download.openmmlab.com/mmaction/recognition/slowonly/slowonly_r50_8x8x1_256e_kinetics400_flow/slowonly_r50_8x8x1_256e_kinetics400_flow_20200704-6b384243.pth)
-
 
 
 ### RGB and audio
