@@ -18,7 +18,7 @@ Slow-Only model for optical flow modality: [link](https://download.openmmlab.com
 
 ## EPIC-Kitchens
 
-*There are two streams in total, one is the audio-adaptive model with RGB and audio modalities, and the other is the audio-adaptive model with optical flow and audio modalities. We average the predictions from the two streams in the end for an mean accuracy of 61.0%.* 
+***There are two streams in total, one is the audio-adaptive model with RGB and audio modalities, and the other is the audio-adaptive model with optical flow and audio modalities. We average the predictions from the two streams in the end for an mean accuracy of 61.0%.*** 
 
 * Prepare the audio files (.wav) from the videos:
 
