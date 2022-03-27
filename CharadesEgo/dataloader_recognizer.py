@@ -42,7 +42,7 @@ def get_spectrogram_piece(samples, start_time, end_time, duration, samplerate, t
 
     return spectrogram
 
-class CharadesEgoProjectionTraining(torch.utils.data.Dataset):
+class CharadesEgoTraining(torch.utils.data.Dataset):
     def __init__(self, split='train', source_domain='3rd', target_domain='1st', modality='rgb', cfg=None,):
         self.base_path = '/home/yzhang8/data/CharadesEgo/'
         self.video_list = []

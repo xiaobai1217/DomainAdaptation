@@ -1,6 +1,6 @@
 from mmaction.apis import init_recognizer, inference_recognizer
 import torch
-from dataloader_transformer import CharadesEgoProjectionTraining, CharadesEgoProjectionValidating
+from dataloader_recognizer import CharadesEgoProjectionTraining, CharadesEgoProjectionValidating
 import argparse
 import tqdm
 import os
