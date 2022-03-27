@@ -29,7 +29,9 @@ cluster_num_list = []
 for label_id in range(157):
     feature1 = cls_wise_feature_list[label_id]
     loss_list = []
-    for cluster_num in range(1, 10):
+    for cluster_num in range(1, 20):
+        if cluster_num >= feature1.shape[0]:
+            break
         kmeans = KMeans(n_clusters=cluster_num, init='k-means++', max_iter=300, n_init=10, random_state=0)
         kmeans.fit(feature1)
         pred_y = kmeans.fit_predict(feature1)
@@ -49,13 +51,13 @@ save_path = 'audio_clusters/'
 if not os.path.exists(save_path):
     os.mkdir(save_path)
 cluster_num_list = np.array(cluster_num_list)
-np.save(save_path + 'cluster_num2.npy', cluster_num_list)
-save_path2 = save_path + 'clusters_per_cls2/'
+np.save(save_path + 'cluster_num.npy', cluster_num_list)
+save_path2 = save_path + 'clusters_per_cls/'
 if not os.path.exists(save_path2):
     os.mkdir(save_path2)
 for label_id in range(157):
     data1 = name_list[label_id]
-    np.save(save_path+'%02d_centers2.npy'%label_id, cluster_centers[label_id])
+    np.save(save_path+'%02d_centers.npy'%label_id, cluster_centers[label_id])
     save_path1 = save_path + '%02d/' % label_id
     if not os.path.exists(save_path1):
         os.mkdir(save_path1)

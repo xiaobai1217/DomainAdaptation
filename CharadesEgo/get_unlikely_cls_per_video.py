@@ -2,7 +2,7 @@ import csv
 import os
 import numpy as np
 
-base_path = '/home/yzhang8/data/CharadesEgo/'
+base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
 
 video_list = []
 class_list = []

@@ -11,9 +11,9 @@ import random
 import glob
 from PIL import Image
 
-class CharadesEgoAligningTraining(torch.utils.data.Dataset):
+class CharadesEgoTraining(torch.utils.data.Dataset):
     def __init__(self, split='train', source_domain='3rd', target_domain='1st', modality='rgb', cfg=None, use_audio=True, beta=0.99):
-        self.base_path = '/home/yzhang8/data/CharadesEgo/'
+        self.base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
         self.video_list = []
 
         with open(self.base_path+"CharadesEgo_v1_%s_only%s.csv"%(split, source_domain)) as f:
@@ -285,9 +285,9 @@ class CharadesEgoAligningTraining(torch.utils.data.Dataset):
         return len(self.video_list)
 
 
-class CharadesEgoAligningValidating(torch.utils.data.Dataset):
+class CharadesEgoValidating(torch.utils.data.Dataset):
     def __init__(self, split='test', domain='3rd',  modality='rgb', cfg=None,):
-        self.base_path = '/home/yzhang8/data/CharadesEgo/'
+        self.base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
         self.video_list = []
 
         with open(self.base_path + "CharadesEgo_v1_%s_only%s.csv" % (split, domain)) as f:
@@ -400,9 +400,9 @@ class CharadesEgoAligningValidating(torch.utils.data.Dataset):
         return len(self.video_list)
 
 
-class CharadesEgoReweightingTesting(torch.utils.data.Dataset):
+class CharadesEgoTesting(torch.utils.data.Dataset):
     def __init__(self, split='train', domain='1st',  modality='rgb', cfg=None,):
-        self.base_path = '/home/yzhang8/data/CharadesEgo/'
+        self.base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
         self.video_list = []
 
         with open(self.base_path + "CharadesEgo_v1_%s_only%s.csv" % (split, domain)) as f:

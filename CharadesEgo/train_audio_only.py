@@ -87,7 +87,7 @@ if __name__ == '__main__':
                         spectrogram = spectrogram.unsqueeze(1).cuda()
 
                         with torch.no_grad():
-                            _, audio_feat = audio_model(spectrogram)
+                            _, audio_feat,_ = audio_model(spectrogram)
 
                         audio_predict = audio_att_model(audio_feat.detach())
 

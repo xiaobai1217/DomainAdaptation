@@ -1,6 +1,6 @@
 from mmaction.apis import init_recognizer, inference_recognizer
 import torch
-from dataloader_encoder import CharadesEgoAligningTraining, CharadesEgoAligningValidating
+from dataloader_encoder import CharadesEgoTraining, CharadesEgoValidating
 import argparse
 import tqdm
 import os
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     # # download the checkpoint from model zoo and put it in `checkpoints/`
     # checkpoint_file = 'ircsn_ig65m_pretrained_bnfrozen_r152_32x2x1_58e_kinetics400_rgb_20200812-9037a758.pth'
     config_file = 'configs/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb.py'
-    checkpoint_file = '/home/yzhang8/data/mmaction2_models/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth'
+    checkpoint_file = '/var/scratch/yzhang9/data/mmaction2_models/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth'
 
     # assign the desired device.
     device = 'cuda:0'  # or 'cpu'
@@ -164,12 +164,12 @@ if __name__ == '__main__':
         model.module.backbone.slow_path.layer4.parameters()) + list(model.module.cls_head.parameters()) + list(
         attention_model.parameters()), lr=lr, weight_decay=1e-4)
     scheduler = lr_scheduler.StepLR(optim, step_size=60, gamma=0.1)
-    train_dataset = CharadesEgoAligningTraining(split='train', source_domain=args.source_domain,
+    train_dataset = CharadesEgoTraining(split='train', source_domain=args.source_domain,
                                                 target_domain=args.target_domain, modality='rgb', cfg=cfg)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, num_workers=4, shuffle=True,
                                                    pin_memory=(device.type == "cuda"), drop_last=True)
-    validate_dataset = CharadesEgoAligningValidating(split='test', domain=args.target_domain, modality='rgb', cfg=cfg, )
+    validate_dataset = CharadesEgoValidating(split='test', domain=args.target_domain, modality='rgb', cfg=cfg, )
     validate_dataloader = torch.utils.data.DataLoader(validate_dataset, batch_size=batch_size, num_workers=4,
                                                       shuffle=True,
                                                       pin_memory=(device.type == "cuda"), drop_last=True)

@@ -44,7 +44,7 @@ checkpoint = torch.load("checkpoints/best_%s2%s_audio.pt"%(args.source_domain, a
 audio_att_model.load_state_dict(checkpoint['audio_state_dict'])
 audio_att_model.eval()
 
-base_path = '/home/yzhang8/data/CharadesEgo/'
+base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
 
 def get_spec_piece(samples, start_time, end_time, duration):
     start1 = start_time / duration * len(samples)
@@ -54,6 +54,8 @@ def get_spec_piece(samples, start_time, end_time, duration):
     samples = samples[start1:end1]
 
     resamples = samples[:160000]
+    if len(resamples) == 0:
+        resamples = np.zeros((160000,))
     while len(resamples) < 160000:
         resamples = np.tile(resamples, 10)[:160000]
 
@@ -93,8 +95,8 @@ if not os.path.exists(save_path):
     os.mkdir(save_path)
 for i, sample1 in enumerate(video_list):
     print(i, len(video_list))
-    if i < 2427:
-        continue
+    #if i < 2426:
+    #    continue 
     audio_path = base_path + 'audio/' + sample1 + '.wav'
 
     label1 = class_list[i]
@@ -129,19 +131,22 @@ for i, sample1 in enumerate(video_list):
         with torch.no_grad():
             #print(ii)
             #print(spec_list[ii*32:(ii+1)*32,:,:,:].size())
-            _, audio_feat = audio_model(spec_list[ii:ii+32,:,:,:])
+            _, audio_feat,_ = audio_model(spec_list[ii:ii+32,:,:,:])
             audio_predict = audio_att_model(audio_feat.detach())
             predict1 = torch.sigmoid(audio_predict)
             predict_list.append(predict1)
     predict1 = torch.cat(predict_list, dim=0)
     predict1 = torch.mean(predict1, dim=0)
 
-    labels = np.zeros((157,))
+    labels = np.zeros((1,157))
     for tmp in label1:
-        labels[tmp] = 1
-    ap_meter.add(predict1.data, labels)
+        labels[0,tmp] = 1
 
-    np.save(save_path+sample1, predict1.detach().cpu().numpy())
+    predict = predict1.detach().unsqueeze(0).cpu().numpy()
+    
+    ap_meter.add(predict, labels)
+
+    np.save(save_path+sample1, predict[0])
 
 map = 100 * ap_meter.value().mean()
 print(map)

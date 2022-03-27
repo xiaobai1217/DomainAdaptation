@@ -32,7 +32,7 @@ audio_model.load_state_dict(checkpoint['model_state_dict'])
 audio_model = audio_model.cuda()
 audio_model.eval()
 
-base_path = '/home/yzhang8/data/CharadesEgo/'
+base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
 
 def get_spec_piece(samples, start_time, end_time, duration):
     start1 = start_time / duration * len(samples)
