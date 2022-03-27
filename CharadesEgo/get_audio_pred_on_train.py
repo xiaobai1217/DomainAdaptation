@@ -132,7 +132,7 @@ for i, sample1 in enumerate(video_list):
             #print(ii)
             #print(spec_list[ii*32:(ii+1)*32,:,:,:].size())
             _, audio_feat,_ = audio_model(spec_list[ii:ii+32,:,:,:])
-            audio_predict = audio_att_model(audio_feat.detach())
+            audio_predict,_ = audio_att_model(audio_feat.detach())
             predict1 = torch.sigmoid(audio_predict)
             predict_list.append(predict1)
     predict1 = torch.cat(predict_list, dim=0)

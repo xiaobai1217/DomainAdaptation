@@ -89,7 +89,7 @@ if __name__ == '__main__':
                         with torch.no_grad():
                             _, audio_feat,_ = audio_model(spectrogram)
 
-                        audio_predict = audio_att_model(audio_feat.detach())
+                        audio_predict,_ = audio_att_model(audio_feat.detach())
 
                         ap_meter.add(audio_predict.data, labels)
                         loss = criterion(torch.sigmoid(audio_predict), labels)
