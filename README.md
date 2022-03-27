@@ -114,6 +114,33 @@ sh bash.sh
 ## CharadesEgo
 This code conducts semi-supervised domain adaptation with all the source (3rd-person view) data and half of the target (1st-person view) data, based on RGB (SlowFast backbone) and audio modalities, reproducing an mAP of 26.3%. 
 
+* The directory structure should be modified to match:
+
+```
+├── CharadesEgo
+|   ├── audio
+|   |   ├── 005BUEGO.wav
+|   |   ├── 005BU.wav
+|   |   ├── ...
+|   ├── CharadesEgo_v1_rgb
+|   |   ├── 005BU
+|   |   |   ├── 005BU-000001.jpg
+|   |   |   ├── 005BU-000002.jpg
+|   |   |   ├── ...
+|   |   ├── 005BUEGO
+|   |   ├── ...
+|   ├── Labels
+|   |   ├── 005BU
+|   |   |   ├── frame_0000000001_0000000174.csv
+|   |   |   ├── ...
+|   |   ├── 005BUEGO
+|   |   ├── ...
+|   ├── CharadesEgo_v1_train_only1st.csv
+|   ├── CharadesEgo_v1_train_only3rd.csv
+|   ├── CharadesEgo_v1_test_only1st.csv
+|   ├── CharadesEgo_v1_test_only3rd.csv
+```
+
 You need to change the data paths to yours in `dataloader_*.py`, `train_*.py`, `test_*.py` and `get_*.py`. 
 
 * Go to the sub-directory
