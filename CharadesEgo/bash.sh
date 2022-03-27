@@ -7,5 +7,6 @@ python get_unlikely_cls_per_video.py
 python get_per_class_frequency.py
 python train_encoder.py
 python train_encoder_finetune.py
-python train_transformer.py
-python train_transformer_finetune.py
+python train_recognizer.py
+python train_recognizer_finetune.py
+python test_recognizer.py

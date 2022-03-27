@@ -146,7 +146,7 @@ class AudioAttGenModule(nn.Module):
         # elif self.pool == 'vlad':
         #     x = self.fc_(x_)
 
-        return x
+        return x, x_
 
 class ResNet(nn.Module):
 

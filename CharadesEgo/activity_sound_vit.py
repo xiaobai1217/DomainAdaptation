@@ -99,7 +99,9 @@ class ViTCls(nn.Module):
         #self.norm2 = nn.LayerNorm(dim)
         self.to_patch_embedding2 = nn.Linear(2304,dim)
         #self.norm1 = nn.LayerNorm(dim)
-        self.pos_embedding = nn.Parameter(torch.randn(1, 2, dim))
+        self.pos_embedding_target = nn.Parameter(torch.randn(1, dim))
+        self.pos_embedding_source = nn.Parameter(torch.randn(1, dim))
+
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
         self.judge_token = nn.Parameter(torch.randn(1,1,dim))
         self.dropout = nn.Dropout(emb_dropout)
@@ -140,21 +142,21 @@ class ViTCls(nn.Module):
             x = torch.cat((judge_token,v_feat, audio_feat, another_v_feat, another_audio_feat), dim=1)
         else:
             #v_feat = self.to_patch_embedding2(x)
-            b1,n1, _ = v_feat.size()
+            b1,n1, _ = x.size()
             audio_feat = self.to_patch_embedding(audio_feat)
             b, n, _ = audio_feat.shape
             #cls_tokens = repeat(self.cls_token, '() n d -> b n d', b = b)
             if target is True:
-                pos1 = self.pos_embedding[:,1:]
+                pos1 = self.pos_embedding_target
             else:
-                pos1 = self.pos_embedding[:,:1]
-            pos2 = pos1.repeat(1, v_feat.size()[1], 1)
-            v_feat += pos2
+                pos1 = self.pos_embedding_source
+            pos2 = pos1.repeat(1, x.size()[1], 1)
+            x += pos2
 
             #pos2 = pos1.repeat(1, audio_feat.size()[1], 1)
             #audio_feat += pos2
 
-            x = torch.cat((audio_feat, v_feat,), dim=1)
+            x = torch.cat((audio_feat, x,), dim=1)
 
         x = self.dropout(x)
 

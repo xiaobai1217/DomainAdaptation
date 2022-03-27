@@ -12,7 +12,7 @@ import os
 
 class CharadesEgoAudio(torch.utils.data.Dataset):
     def __init__(self, split='train', domain='1st', cfg=None):
-        self.base_path = "/home/yzhang8/data/CharadesEgo/"
+        self.base_path = "/local-ssd/yzhang9/data/CharadesEgo/"
         self.split = split
         self.domain = domain
         self.video_list = []

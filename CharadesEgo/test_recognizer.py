@@ -21,11 +21,12 @@ from VGGSound.model import AVENet
 from VGGSound.models.resnet import AudioAttGenModule
 from VGGSound.test import get_arguments
 import torch.nn.functional as F
-from dataloader_aligning_att import get_spectrogram_piece
+from dataloader_recognizer import get_spectrogram_piece
+from train_recognizer import Recognizer
 
-class CharadesEgoAligningTesting(torch.utils.data.Dataset):
+class CharadesEgoTesting(torch.utils.data.Dataset):
     def __init__(self, split='test', domain='3rd',  modality='rgb', cfg=None,):
-        self.base_path = '/home/yzhang8/data/CharadesEgo/'
+        self.base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
 
         self.video_list = []
         self.class_list = []
@@ -116,7 +117,7 @@ args = parser.parse_args()
 
 config_file = 'configs/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb.py'
 #checkpoint_file = '/var/scratch/yzhang9/data/mmaction2_models/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth'
-checkpoint_file = '/home/yzhang8/data/mmaction2_models/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth'
+checkpoint_file = '/var/scratch/yzhang9/data/mmaction2_models/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth'
 
 # assign the desired device.
 device = 'cuda:0'  # or 'cpu'
@@ -146,20 +147,27 @@ audio_model = audio_model.cuda()
 audio_model = torch.nn.DataParallel(audio_model)
 audio_model.eval()
 
-adapter = ViTCls(dim=256, depth=args.depth, heads=8, mlp_dim=512, dropout=args.dropout, emb_dropout=args.emb_dropout,
-                 dim_head=64)
-adapter = adapter.cuda()
-adapter = torch.nn.DataParallel(adapter)
-checkpoint = torch.load("checkpoints/best_%s2%s_CharadesEgo_transformer_finetuned.pt"%(args.source_domain, args.target_domain, ))
-adapter.load_state_dict(checkpoint['state_dict'])
-adapter.eval()
+audio_cls_model = AudioAttGenModule()
+audio_cls_model.fc = nn.Linear(512, 157)
+audio_cls_model = audio_cls_model.cuda()
+checkpoint = torch.load("checkpoints/best_%s2%s_audio.pt" % (args.source_domain, args.target_domain))
+audio_cls_model.load_state_dict(checkpoint['audio_state_dict'])
+audio_cls_model = torch.nn.DataParallel(audio_cls_model)
+audio_cls_model.eval()
 
-test_dataset = CharadesEgoAligningTesting(split='test', domain=args.target_domain, modality='rgb', cfg=cfg, )
+recognizer = Recognizer()
+recognizer = recognizer.cuda()
+recognizer = torch.nn.DataParallel(recognizer)
+checkpoint = torch.load("checkpoints/best_3rd21st_CharadesEgo_recognizer_fintuned.pt")
+recognizer.load_state_dict(checkpoint['state_dict'])
+recognizer.eval()
+
+test_dataset = CharadesEgoTesting(split='test', domain=args.target_domain, modality='rgb', cfg=cfg, )
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=1, num_workers=4, shuffle=True,
                                                   pin_memory=(device.type == "cuda"), drop_last=True)
 
 #base_path = '/var/scratch/yzhang9/data/CharadesEgo/'
-base_path = '/home/yzhang8/data/CharadesEgo/'
+base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
 test_pipeline = cfg.data.test.pipeline
 test_pipeline = Compose(test_pipeline)
 
@@ -195,17 +203,17 @@ for (i, (clip, labels, spectrogram, sample1)) in enumerate(test_dataloader):
             fast_feat = F.adaptive_max_pool3d(fast_feat.detach(), (64, 1, 1)).squeeze(3).squeeze(3)
             slow_feat = slow_feat.transpose(1, 2).contiguous().detach()
             fast_feat = fast_feat.transpose(1, 2).contiguous().detach()
-            predict1 = adapter(slow_feat, fast_feat, audiofeat4trans.unsqueeze(1).detach(), target=True)
+            predict1,_,_ = recognizer(slow_feat, fast_feat, audiofeat4trans.detach(), target=True)
 
             predict1 = torch.sigmoid(predict1)
             predict_list.append(predict1.detach())
     predict1 = torch.cat(predict_list, dim=0)
     predict1,_ = torch.max(predict1, dim=0)
+    predict1 = predict1.detach().unsqueeze(0).cpu().numpy()
+    ap_meter.add(predict1, labels.numpy())
 
-    ap_meter.add(predict1.data, labels[0])
 
-
-    np.save(save_path+sample1[0], predict1.detach().cpu().numpy())
+    np.save(save_path+sample1[0], predict1[0])
 
 map = 100 * ap_meter.value().mean()
 print(map)

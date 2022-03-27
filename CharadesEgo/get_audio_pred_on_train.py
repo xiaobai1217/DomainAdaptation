@@ -36,13 +36,13 @@ audio_model.load_state_dict(checkpoint['model_state_dict'])
 audio_model = audio_model.cuda()
 audio_model.eval()
 
-audio_cls_model = AudioAttGenModule()
-audio_cls_model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-audio_cls_model.fc = nn.Linear(512, 157)
-audio_cls_model = audio_cls_model.cuda()
+audio_att_model = AudioAttGenModule()
+audio_att_model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+audio_att_model.fc = nn.Linear(512, 157)
+audio_att_model = audio_att_model.cuda()
 checkpoint = torch.load("checkpoints/best_%s2%s_audio.pt"%(args.source_domain, args.target_domain))
-audio_cls_model.load_state_dict(checkpoint['audio_state_dict'])
-audio_cls_model.eval()
+audio_att_model.load_state_dict(checkpoint['audio_state_dict'])
+audio_att_model.eval()
 
 base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
 
@@ -132,7 +132,7 @@ for i, sample1 in enumerate(video_list):
             #print(ii)
             #print(spec_list[ii*32:(ii+1)*32,:,:,:].size())
             _, audio_feat,_ = audio_model(spec_list[ii:ii+32,:,:,:])
-            audio_predict = audio_cls_model(audio_feat.detach())
+            audio_predict = audio_att_model(audio_feat.detach())
             predict1 = torch.sigmoid(audio_predict)
             predict_list.append(predict1)
     predict1 = torch.cat(predict_list, dim=0)

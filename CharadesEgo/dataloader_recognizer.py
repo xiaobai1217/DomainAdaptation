@@ -44,7 +44,7 @@ def get_spectrogram_piece(samples, start_time, end_time, duration, samplerate, t
 
 class CharadesEgoTraining(torch.utils.data.Dataset):
     def __init__(self, split='train', source_domain='3rd', target_domain='1st', modality='rgb', cfg=None,):
-        self.base_path = '/home/yzhang8/data/CharadesEgo/'
+        self.base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
         self.video_list = []
 
         self.per_cls_freq = np.load("per_class_freq.npy")
@@ -192,71 +192,16 @@ class CharadesEgoTraining(torch.utils.data.Dataset):
         duration = len(samples) / samplerate
         target_spectrogram = get_spectrogram_piece(samples, start_time, end_time, duration, samplerate)
 
-        #----------------------------------------------get judge sample---------------------------------------------------------------
-        if np.random.uniform(0,1,(1,))[0] > 0.5:
-            common_labels = np.sum(np.expand_dims(label1, axis=0) * self.target_class_list, axis=1)
-            #print(self.num_target_videos, common_labels.shape)
-            potential_idxs = np.arange(self.num_target_videos)[common_labels > 0]
-            idx1 = np.random.choice(potential_idxs, (1,))[0]
 
-            video_path = self.base_path + 'CharadesEgo_v1_rgb/' + self.target_video_list[idx1] + "/" + \
-                         self.target_video_list[idx1] + '-'
-            label_path = self.base_path + "Labels/" + self.target_video_list[idx1] + "/"
-            label_list = os.listdir(label_path)
-            id1 = np.random.choice(len(label_list), (1,))[0]
-            frame_list = []
-            class_list = []
-            with open(label_path + label_list[id1]) as f:
-                f_csv = csv.reader(f)
-                for i, row in enumerate(f_csv):
-                    frame_list.append(row[0])
-                    class_list.append(row[1])
-            f.close()
-
-            start_frame = int(frame_list[0])
-            end_frame = int(frame_list[-1])
-
-            filename_tmpl = self.cfg.data.train.get('filename_tmpl', '{:06}.jpg')
-            modality = self.cfg.data.train.get('modality', 'RGB')
-            start_index = self.cfg.data.train.get('start_index', start_frame)
-            another_target_data = dict(
-                frame_dir=video_path,
-                total_frames=end_frame - start_frame,
-                # assuming files in ``video_path`` are all named with ``filename_tmpl``  # noqa: E501
-                label=-1,
-                start_index=start_index,
-                filename_tmpl=filename_tmpl,
-                modality=modality)
-            another_target_data, another_target_frame_inds = self.train_pipeline(another_target_data)
-
-            another_target_label1 = np.zeros((157))
-            for i in another_target_frame_inds:
-                tmp = class_list[i - start_frame].split(' ')
-                for ttt in tmp:
-                    tt = ttt[1:]
-                    another_target_label1[int(tt)] += 1
-            another_target_label1 = (another_target_label1 > 0).astype(np.float32)
-
-            audio_path = self.base_path + 'audio/' + self.target_video_list[idx1] + '.wav'
-            start_time = another_target_frame_inds[0] / 24.0
-            end_time = another_target_frame_inds[-1] / 24.0
-            samples, samplerate = sf.read(audio_path)
-            duration = len(samples) / samplerate
-            another_target_spectrogram = get_spectrogram_piece(samples, start_time, end_time, duration, samplerate)
-
-            judge_label = np.sum(another_target_label1 * label1) > 0
-            return data, label1, spectrogram, target_data, target_label1, target_spectrogram, another_target_data, judge_label, another_target_spectrogram
-        else:
-            judge_label = np.sum(target_label1 * label1) > 0
-            return data, label1, spectrogram, target_data, target_label1, target_spectrogram,target_data, judge_label, target_spectrogram
+        return data, label1, spectrogram, target_data, target_label1, target_spectrogram
 
     def __len__(self):
         return len(self.video_list)
 
 
-class CharadesEgoProjectionValidating(torch.utils.data.Dataset):
+class CharadesEgoValidating(torch.utils.data.Dataset):
     def __init__(self, split='test', domain='3rd',  modality='rgb', cfg=None,):
-        self.base_path = '/home/yzhang8/data/CharadesEgo/'
+        self.base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
         self.video_list = []
 
         with open(self.base_path + "CharadesEgo_v1_%s_only%s.csv" % (split, domain)) as f:
@@ -335,15 +280,15 @@ class CharadesEgoProjectionValidating(torch.utils.data.Dataset):
 
         # -------------------------------------------------------------------------------------------------------------
 
-        return data, label1, spectrogram,0,0,0,0,0,0
+        return data, label1, spectrogram,0,0,0
 
     def __len__(self):
         return len(self.video_list)
 
 
-class CharadesEgoReweightingTesting(torch.utils.data.Dataset):
+class CharadesEgoTesting(torch.utils.data.Dataset):
     def __init__(self, split='train', domain='1st',  modality='rgb', cfg=None,):
-        self.base_path = '/home/yzhang8/data/CharadesEgo/'
+        self.base_path = '/local-ssd/yzhang9/data/CharadesEgo/'
         self.video_list = []
 
         with open(self.base_path + "CharadesEgo_v1_%s_only%s.csv" % (split, domain)) as f:

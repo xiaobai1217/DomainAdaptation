@@ -1,6 +1,6 @@
 from mmaction.apis import init_recognizer, inference_recognizer
 import torch
-from dataloader_recognizer import CharadesEgoProjectionTraining, CharadesEgoProjectionValidating
+from dataloader_recognizer import CharadesEgoTraining, CharadesEgoValidating
 import argparse
 import tqdm
 import os
@@ -8,7 +8,7 @@ import numpy as np
 import math
 import csv
 import collections
-import torch.nn as nn
+from torch import nn, einsum
 import torch.nn.functional as F
 from torch.optim import lr_scheduler
 from util1 import AveragePrecisionMeter
@@ -22,74 +22,73 @@ from VGGSound.test import get_arguments
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-class ActivitySoundTransformer(nn.Module):
+class Recognizer(nn.Module):
     def __init__(self):
-        super(ActivitySoundTransformer, self).__init__()
-        self.delegate_vectors = nn.Parameter(torch.randn(8, 512))
+        super(Recognizer, self).__init__()
+        self.delegate_vectors = nn.Parameter(torch.randn(157, 512),requires_grad=True)
         self.audio_fc = nn.Sequential(nn.Linear(512, 512),
                                       nn.BatchNorm1d(512),
-                                      nn.ReLU(),
-                                      nn.Linear(512, 8))
-        self.visual_fc = nn.Sequential(nn.Linear(512, 64),
+                                      nn.ReLU(inplace=False),
+                                      nn.Linear(512, 157))
+        self.visual_fc = nn.Sequential(nn.Linear(256, 64),
                                        nn.LayerNorm(64),
                                        nn.ReLU())
         self.audio_visual_fc = nn.Sequential(nn.Linear(512+64, 512),
                                              nn.BatchNorm1d(512),
-                                             nn.ReLU(),
-                                             nn.Linear(512, 8))
+                                             nn.ReLU(inplace=False),
+                                             nn.Linear(512, 157))
 
-        self.to_patch_embedding2 = nn.Linear(2048,dim)
-        self.to_patch_embedding3 = nn.Linear(256,dim)
+        self.to_patch_embedding2 = nn.Linear(2048,256)
+        self.to_patch_embedding3 = nn.Linear(256,256)
 
         self.transformer = ViTCls(dim=256, depth=2, heads=8, mlp_dim = 512, num_classes=157, dropout=0.15, emb_dropout=0.1)
 
     def forward(self, slow_feat, fast_feat, audio_feat, target=True):
-        v_feat = self.to_patch_embedding2(slow_x)
-        v_feat2 = self.to_patch_embedding3(fast_x)
+        v_feat = self.to_patch_embedding2(slow_feat)
+        v_feat2 = self.to_patch_embedding3(fast_feat)
         visual_feat = torch.cat((v_feat, v_feat2), dim=1)
         #----------------------------------------------
-        visual_feat2 = self.visual_fc(visual_feat)
+        visual_feat2 = self.visual_fc(visual_feat.detach().clone())
         b,n,c = visual_feat.size()
         visual_feat2 = visual_feat2.view(b*n, 64)
+
+        # visual_feat2 = visual_feat2.view(b*n, 64)
         b1,_ = audio_feat.size()
         audio_att1 = self.audio_fc(audio_feat)
         audio_att = torch.softmax(audio_att1, dim=1)
         delegate_vectors = self.delegate_vectors.unsqueeze(0).repeat(b*n,1,1)
-        #print(audio_att.size(), delegate_vectors.size())
-        audio_att = audio_att.unsqueeze(1).repeat(1,5,1).view(5*b1,-1)
+        audio_att = audio_att.unsqueeze(1).repeat(1,n,1).view(n*b1,-1)
         new_audio_vector = einsum('b d, b d i -> b i', audio_att, delegate_vectors)
+
         vector1 = torch.cat((new_audio_vector, visual_feat2), dim=1)
         audio_att22 = self.audio_visual_fc(vector1)
         audio_att2 = torch.softmax(audio_att22, dim=1)
         new_audio_vector2 = einsum('b d, b d i -> b i', audio_att2, delegate_vectors)
         new_audio_vector2 = new_audio_vector2.view(b,n,-1)
-        #print(visual_feat.size(), new_audio_vector2.size())
-        pred = self.transformer(visual_feat, new_audio_vector2, target=target)
+        new_audio_vector2 = torch.mean(new_audio_vector2, dim=1, keepdim=True)
+        pred = self.transformer(visual_feat,new_audio_vector2, target=target)
 
         return pred, audio_att1, audio_att22
 
 
-def train_one_step(model, audio_model, att_model, adapter, clip, spectrogram, labels, target_clip, target_labels, target_spectrogram,a_target_clip, judge_labels, a_target_spectrogram):
+def train_one_step(model, audio_model,audio_cls_model, att_model, recognizer, clip, spectrogram, labels, target_clip, target_labels, target_spectrogram):
     target_clip = target_clip['imgs'].squeeze(1).cuda()
     target_labels = target_labels.cuda()
-    target_spectrogram = target_spectrogram.type(torch.FloatTensor).cuda().unsqueeze(1)
+    b,c,f,h,w = clip.size()
 
-    a_target_clip = a_target_clip['imgs'].squeeze(1).cuda()
-    judge_labels = judge_labels.type(torch.FloatTensor).cuda()
-    a_target_spectrogram = a_target_spectrogram.type(torch.FloatTensor).cuda().unsqueeze(1)
+    target_spectrogram = target_spectrogram.type(torch.FloatTensor).cuda().unsqueeze(1)
 
     with torch.no_grad():
         x_slow, x_fast = model.module.backbone.get_feature(clip)
-        _, audio_feat, audiofeat4trans = audio_model(spectrogram)  # 16,256,17,63
+        _, audio_feat, _ = audio_model(spectrogram)  # 16,256,17,63
+        _,audiofeat4trans = audio_cls_model(audio_feat)
         feat = (x_slow.detach(), x_fast.detach()) #slow 16,1280,16,14,14, fast 16,128,64,14,14
 
         target_x_slow, target_x_fast = model.module.backbone.get_feature(target_clip)
-        _, target_audio_feat, target_audiofeat4trans = audio_model(target_spectrogram)  # 16,256,17,63
-        target_feat = (target_x_slow.detach(), target_x_fast.detach()) #slow 16,1280,16,14,14, fast 16,128,64,14,14
+        _, target_audio_feat, _ = audio_model(target_spectrogram)  # 16,256,17,63
+        _,target_audiofeat4trans = audio_cls_model(target_audio_feat)
 
-        a_target_x_slow, a_target_x_fast = model.module.backbone.get_feature(a_target_clip)
-        _, a_target_audio_feat, a_target_audiofeat4trans = audio_model(a_target_spectrogram)  # 16,256,17,63
-        a_target_feat = (a_target_x_slow.detach(), a_target_x_fast.detach()) #slow 16,1280,16,14,14, fast 16,128,64,14,14
+        target_feat = (target_x_slow.detach(), target_x_fast.detach()) #slow 16,1280,16,14,14, fast 16,128,64,14,14
 
         channel_att, channel_att2 = att_model(audio_feat.detach())
         adapted_v_feat = [torch.sigmoid(channel_att.unsqueeze(2).unsqueeze(2).unsqueeze(2)) * feat[0], torch.sigmoid(channel_att2.unsqueeze(2).unsqueeze(2).unsqueeze(2)) * feat[1]]
@@ -99,27 +98,28 @@ def train_one_step(model, audio_model, att_model, adapter, clip, spectrogram, la
         adapted_v_feat = [torch.sigmoid(target_channel_att.unsqueeze(2).unsqueeze(2).unsqueeze(2)) * target_feat[0],
                           torch.sigmoid(target_channel_att2.unsqueeze(2).unsqueeze(2).unsqueeze(2)) * target_feat[1]]
         target_slow_feat, target_fast_feat = model.module.backbone.get_predict(adapted_v_feat)
-        #target_predict1 = model.module.cls_head(target_predict1)
 
-        a_target_channel_att, a_target_channel_att2 = att_model(a_target_audio_feat.detach())
-        a_adapted_v_feat = [torch.sigmoid(a_target_channel_att.unsqueeze(2).unsqueeze(2).unsqueeze(2)) * a_target_feat[0],
-                          torch.sigmoid(a_target_channel_att2.unsqueeze(2).unsqueeze(2).unsqueeze(2)) * a_target_feat[1]]
-        a_target_slow_feat, a_target_fast_feat = model.module.backbone.get_predict(a_adapted_v_feat)
+        slow_feat = F.adaptive_max_pool3d(slow_feat.detach(), (16,1,1)).squeeze(3).squeeze(3)
+        fast_feat = F.adaptive_max_pool3d(fast_feat.detach(), (64,1,1)).squeeze(3).squeeze(3)
+        slow_feat1 = slow_feat.transpose(1,2).contiguous().detach().clone()
+        fast_feat1 = fast_feat.transpose(1,2).contiguous().detach().clone()
+
+        target_slow_feat = F.adaptive_max_pool3d(target_slow_feat.detach(), (16,1,1)).squeeze(3).squeeze(3)
+        target_fast_feat = F.adaptive_max_pool3d(target_fast_feat.detach(), (64,1,1)).squeeze(3).squeeze(3)
+        target_slow_feat1 = target_slow_feat.transpose(1,2).contiguous().detach().clone()
+        target_fast_feat1 = target_fast_feat.transpose(1,2).contiguous().detach().clone()
 
     #2048,16,7,7; 256,64,7,7
-    slow_feat = F.adaptive_max_pool3d(slow_feat.detach(), (16,1,1)).squeeze(3).squeeze(3)
-    fast_feat = F.adaptive_max_pool3d(fast_feat.detach(), (64,1,1)).squeeze(3).squeeze(3)
-    slow_feat = slow_feat.transpose(1,2).contiguous().detach()
-    fast_feat = fast_feat.transpose(1,2).contiguous().detach() 
-    predict1,audio_att1, audio_att2 = adapter(slow_feat, fast_feat, audiofeat4trans.unsqueeze(1).detach(), target=False)
 
-    target_slow_feat = F.adaptive_max_pool3d(target_slow_feat.detach(), (16,1,1)).squeeze(3).squeeze(3)
-    target_fast_feat = F.adaptive_max_pool3d(target_fast_feat.detach(), (64,1,1)).squeeze(3).squeeze(3)
-    target_slow_feat = target_slow_feat.transpose(1,2).contiguous().detach()
-    target_fast_feat = target_fast_feat.transpose(1,2).contiguous().detach()
-    target_predict1,_,_ = adapter(target_slow_feat, target_fast_feat, target_audiofeat4trans.unsqueeze(1).detach(), target=True)
 
-    loss = (nn.BCELoss()(F.sigmoid(predict1), labels) + nn.BCELoss()(F.sigmoid(target_predict1), target_labels) )/2.0+ (criterion(audio_att1, labels) + criterion(audio_att2, labels2)*0.2)*0.1
+    predict1, audio_att1, audio_att2= recognizer(slow_feat1, fast_feat1, audiofeat4trans.detach().clone(), target=False)
+
+
+    target_predict1, _, _  = recognizer(target_slow_feat1, target_fast_feat1, target_audiofeat4trans.detach().clone(), target=True)
+
+    labels2 = labels.unsqueeze(1).repeat(1,80,1).view(b*80,157).clone()
+    #print(audio_att1.size(), audio_att2.size(), labels.size(), labels2.size())
+    loss = (nn.BCELoss()(F.sigmoid(predict1), labels) + nn.BCELoss()(F.sigmoid(target_predict1), target_labels) )/2.0+ (criterion(F.sigmoid(audio_att1), labels) + criterion(F.sigmoid(audio_att2), labels2)*0.2)*0.1
 
     optim.zero_grad()
     loss.backward()
@@ -128,10 +128,12 @@ def train_one_step(model, audio_model, att_model, adapter, clip, spectrogram, la
     return loss, predict1
 
 
-def validate_one_step(model, audio_model, att_model, adapter, clip, spectrogram, labels):
+def validate_one_step(model, audio_model, audio_cls_model, att_model, recognizer, clip, spectrogram, labels):
     with torch.no_grad():
         x_slow, x_fast = model.module.backbone.get_feature(clip)
-        _, audio_feat, audiofeat4trans = audio_model(spectrogram)  # 16,256,17,63
+        _, audio_feat, _ = audio_model(spectrogram)  # 16,256,17,63
+        _,audiofeat4trans = audio_cls_model(audio_feat)
+
         feat = (x_slow.detach(), x_fast.detach())  # slow 16,1280,16,14,14, fast 16,128,64,14,14
 
         channel_att, channel_att2 = att_model(audio_feat.detach())
@@ -139,13 +141,11 @@ def validate_one_step(model, audio_model, att_model, adapter, clip, spectrogram,
                           torch.sigmoid(channel_att2.unsqueeze(2).unsqueeze(2).unsqueeze(2)) * feat[1]]
 
         slow_feat, fast_feat = model.module.backbone.get_predict(adapted_v_feat)
-        #predict1 = model.module.cls_head(predict1)
-
         slow_feat = F.adaptive_max_pool3d(slow_feat.detach(), (16, 1, 1)).squeeze(3).squeeze(3)
         fast_feat = F.adaptive_max_pool3d(fast_feat.detach(), (64, 1, 1)).squeeze(3).squeeze(3)
         slow_feat = slow_feat.transpose(1,2).contiguous().detach()
         fast_feat = fast_feat.transpose(1,2).contiguous().detach()
-        predict1,_,_ = adapter(slow_feat, fast_feat, audiofeat4trans.unsqueeze(1).detach(), target=True)
+        predict1,_,_ = recognizer(slow_feat, fast_feat, audiofeat4trans.detach(), target=True)
 
     loss = criterion(F.sigmoid(predict1), labels)
     return loss, predict1
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     # # download the checkpoint from model zoo and put it in `checkpoints/`
     # checkpoint_file = 'ircsn_ig65m_pretrained_bnfrozen_r152_32x2x1_58e_kinetics400_rgb_20200812-9037a758.pth'
     config_file = 'configs/recognition/slowfast/slowfast_r101_8x8x1_256e_kinetics400_rgb.py'
-    checkpoint_file = '/home/yzhang8/data/mmaction2_models/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth'
+    checkpoint_file = '/var/scratch/yzhang9/data/mmaction2_models/slowfast_r101_8x8x1_256e_kinetics400_rgb_20210218-0dd54025.pth'
 
     # assign the desired device.
     device = 'cuda:0' # or 'cpu'
@@ -200,15 +200,25 @@ if __name__ == '__main__':
     audio_model.eval()
 
 
-    adapter = ActivitySoundTransformer()
-    adapter = adapter.cuda()
-    adapter = torch.nn.DataParallel(adapter)
+    audio_cls_model = AudioAttGenModule()
+    audio_cls_model.fc = nn.Linear(512, 157)
+    audio_cls_model = audio_cls_model.cuda()
+    checkpoint = torch.load("checkpoints/best_%s2%s_audio.pt"%(args.source_domain, args.target_domain))
+    audio_cls_model.load_state_dict(checkpoint['audio_state_dict'])
+    audio_cls_model = torch.nn.DataParallel(audio_cls_model)
+    audio_cls_model.eval()
+
+
+
+    recognizer = Recognizer()
+    recognizer = recognizer.cuda()
+    recognizer = torch.nn.DataParallel(recognizer)
 
     base_path = "checkpoints/"
     if not os.path.exists(base_path):
         os.mkdir(base_path)
 
-    log_path = base_path + "log%s2%s_transformer.csv"%(args.source_domain, args.target_domain)
+    log_path = base_path + "log%s2%s_recognizer.csv"%(args.source_domain, args.target_domain)
     cmd = ['rm -rf ', log_path]
     os.system(' '.join(cmd))
 
@@ -217,13 +227,13 @@ if __name__ == '__main__':
     batch_size = 16
     lr = args.lr
 
-    optim = torch.optim.Adam(adapter.parameters(), lr=lr, weight_decay=1e-4)
+    optim = torch.optim.Adam(recognizer.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = lr_scheduler.StepLR(optim, step_size=60, gamma=0.1)
-    train_dataset = CharadesEgoProjectionTraining(split='train', source_domain=args.source_domain, target_domain=args.target_domain,modality='rgb', cfg=cfg, )
+    train_dataset = CharadesEgoTraining(split='train', source_domain=args.source_domain, target_domain=args.target_domain,modality='rgb', cfg=cfg, )
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, num_workers=3, shuffle=True,
                                                    pin_memory=(device.type == "cuda"), drop_last=True)
-    validate_dataset = CharadesEgoProjectionValidating(split='test', domain=args.target_domain, modality='rgb', cfg=cfg,)
+    validate_dataset = CharadesEgoValidating(split='test', domain=args.target_domain, modality='rgb', cfg=cfg,)
     validate_dataloader = torch.utils.data.DataLoader(validate_dataset, batch_size=batch_size, num_workers=3, shuffle=True,
                                                    pin_memory=(device.type == "cuda"), drop_last=True)
     dataloaders = {'train': train_dataloader, 'val': validate_dataloader}
@@ -241,18 +251,17 @@ if __name__ == '__main__':
                 print(split)
                 ap_meter.reset()
 
-                adapter.train(split=='train')
+                recognizer.train(split=='train')
                 with tqdm.tqdm(total=len(dataloaders[split])) as pbar:
-                    for (i, (clip, labels, spectrogram, target_clip, target_labels, target_spectrogram,a_target_clip, judge_labels, a_target_spectrogram)) in enumerate(dataloaders[split]):
+                    for (i, (clip, labels, spectrogram, target_clip, target_labels, target_spectrogram,)) in enumerate(dataloaders[split]):
                         clip = clip['imgs'].cuda().squeeze(1)
                         labels = labels.cuda()
-                        #label_weights = label_weights.cuda().unsqueeze(1) / torch.sum(label_weights) * label_weights.size()[0]
                         spectrogram = spectrogram.type(torch.FloatTensor).cuda().unsqueeze(1)
 
                         if split=='train':
-                            loss, predict1 = train_one_step(model, audio_model, attention_model, adapter, clip, spectrogram, labels, target_clip, target_labels, target_spectrogram, a_target_clip, judge_labels, a_target_spectrogram)
+                            loss, predict1 = train_one_step(model, audio_model, audio_cls_model, attention_model, recognizer, clip, spectrogram, labels, target_clip, target_labels, target_spectrogram)
                         else:
-                            loss, predict1 = validate_one_step(model,audio_model, attention_model, adapter, clip, spectrogram, labels)
+                            loss, predict1 = validate_one_step(model,audio_model, audio_cls_model, attention_model, recognizer, clip, spectrogram, labels)
 
                         ap_meter.add(predict1.data, labels)
 
@@ -278,14 +287,13 @@ if __name__ == '__main__':
                 BestMAP =map
                 save = {
                     'epoch': epoch_i,
-                    'state_dict': adapter.state_dict(),
-                    #'att_state_dict': attention_model.state_dict(),
+                    'state_dict': recognizer.state_dict(),
                     'best_loss': BestLoss,
                     'best_map': BestMAP
                 }
 
                 torch.save(save,
-                           base_path + "best_%s2%s_CharadesEgo_transformer.pt" % (args.source_domain, args.target_domain))
+                           base_path + "best_%s2%s_CharadesEgo_recognizer.pt" % (args.source_domain, args.target_domain))
 
         f.write("BestEpoch,{},BestLoss,{},BestMAP,{} \n".format(BestEpoch, BestLoss, BestMAP))
         f.flush()
