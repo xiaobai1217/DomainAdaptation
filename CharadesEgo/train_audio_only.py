@@ -40,10 +40,10 @@ if __name__ == '__main__':
     audio_model = audio_model.cuda()
     audio_model.eval()
 
-    audio_att_model = AudioAttGenModule()
-    audio_att_model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-    audio_att_model.fc = nn.Linear(512, 157)
-    audio_att_model = audio_att_model.cuda()
+    audio_cls_model = AudioAttGenModule()
+    audio_cls_model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+    audio_cls_model.fc = nn.Linear(512, 157)
+    audio_cls_model = audio_cls_model.cuda()
 
     base_path = "checkpoints/"
     if not os.path.exists(base_path):
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     batch_size = 16
     lr = 1e-3#5e-4
 
-    optim = torch.optim.Adam(list(audio_att_model.parameters()), lr=lr, weight_decay=1e-4)
+    optim = torch.optim.Adam(list(audio_cls_model.parameters()), lr=lr, weight_decay=1e-4)
     scheduler = lr_scheduler.StepLR(optim, step_size=60, gamma=0.1)
     train_dataset = CharadesEgoAudio(split='train', domain=args.source_domain,)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -80,7 +80,7 @@ if __name__ == '__main__':
                 total_loss = 0
                 print(split)
                 ap_meter.reset()
-                audio_att_model.train(split == 'train')
+                audio_cls_model.train(split == 'train')
                 with tqdm.tqdm(total=len(dataloaders[split])) as pbar:
                     for (i, (spectrogram, labels)) in enumerate(dataloaders[split]):
                         labels = labels.cuda()
@@ -89,7 +89,7 @@ if __name__ == '__main__':
                         with torch.no_grad():
                             _, audio_feat,_ = audio_model(spectrogram)
 
-                        audio_predict = audio_att_model(audio_feat.detach())
+                        audio_predict = audio_cls_model(audio_feat.detach())
 
                         ap_meter.add(audio_predict.data, labels)
                         loss = criterion(torch.sigmoid(audio_predict), labels)
@@ -118,7 +118,7 @@ if __name__ == '__main__':
                 save = {
                     'epoch': epoch_i,
                     #'state_dict': model.state_dict(),
-                    'audio_state_dict':audio_att_model.state_dict(),
+                    'audio_state_dict':audio_cls_model.state_dict(),
                     'best_loss': BestLoss,
                     'BestMAP': map
                 }
