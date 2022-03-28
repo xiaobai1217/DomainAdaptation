@@ -18,7 +18,7 @@ from VGGSound.test import get_arguments
 import soundfile as sf
 from activity_sound_vit import ViTCls
 from vit import ViT
-from train_transformer import ActivitySoundTransformer
+from train_recognizer import Recognizer
 from scipy import signal
 
 torch.backends.cudnn.deterministic = True
@@ -61,12 +61,20 @@ audio_model = audio_model.cuda()
 audio_model = torch.nn.DataParallel(audio_model)
 audio_model.eval()
 
-adapter = ActivitySoundTransformer()
-adapter = adapter.cuda()
-adapter = torch.nn.DataParallel(adapter)
+audio_cls_model = AudioAttGenModule()
+audio_cls_model.fc = nn.Linear(512, 8)
+audio_cls_model = audio_cls_model.cuda()
+checkpoint = torch.load("checkpoints/best_%s2%s_audio.pt")
+audio_cls_model.load_state_dict(checkpoint['audio_state_dict'])
+audio_cls_model = torch.nn.DataParallel(audio_cls_model)
+audio_cls_model.eval()
+
+recognizer = Recognizer()
+recognizer = recognizer.cuda()
+recognizer = torch.nn.DataParallel(recognizer)
 checkpoint = torch.load("checkpoints/best_%s2%s_slow_flow_transformer_cls.pt" % (args.source_domain, args.target_domain,))
-adapter.load_state_dict(checkpoint['adapter_state_dict'])
-adapter.eval()
+recognizer.load_state_dict(checkpoint['adapter_state_dict'])
+recognizer.eval()
 
 base_path = '/home/xxx/data/EPIC_KITCHENS_UDA/'
 test_file = pd.read_pickle('/home/xxx/data/EPIC_KITCHENS_UDA/' + args.target_domain + "_test.pkl")
@@ -146,7 +154,8 @@ for i, sample1 in enumerate(data1):
 
     with torch.no_grad():
         x_slow, x_fast = model.module.backbone.get_feature(clip)  # 16*5,1024,8,14,14
-        _, audio_feat4att, audio_feat = audio_model(spectrogram)  # 16,256,17,63
+        _, audio_feat4att, _ = audio_model(spectrogram)  # 16,256,17,63
+        _,audio_feat = audio_cls_model(audio_feat4att)
         v_feat = [x_slow.detach(), x_fast.detach()]
 
         channel_att, channel_att2 = attention_model(audio_feat4att.detach())
@@ -165,7 +174,7 @@ for i, sample1 in enumerate(data1):
         x_fast = x_fast.flatten(1)
         v_feat = torch.cat((x_slow, x_fast), dim=1)
         v_feat = v_feat.view(1, 5, 2304)
-        predict1,_,_ = adapter(visual_feat=v_feat.detach(), audio_feat=audio_feat.detach(), target=True)
+        predict1,_,_ = recognizer(visual_feat=v_feat.detach(), audio_feat=audio_feat.detach(), target=True)
         predict1 = torch.softmax(predict1, dim=1)
 
     predict1 = torch.mean(predict1, dim=0).detach().cpu().numpy()
