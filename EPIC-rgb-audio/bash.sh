@@ -41,10 +41,17 @@ python get_pseudo_labels.py --source_domain D2 --target_domain D1
 python get_pseudo_labels.py --source_domain D2 --target_domain D3
 python get_pseudo_labels.py --source_domain D3 --target_domain D1
 python get_pseudo_labels.py --source_domain D3 --target_domain D2
-#--------------------------------------------------- train activity sound transformer ---------------------------------------
+#--------------------------------------------------- train audio-infused recognizer ---------------------------------------
 python train_recognizer.py --source_domain D1 --target_domain D2
 python train_recognizer.py --source_domain D1 --target_domain D3
 python train_recognizer.py --source_domain D2 --target_domain D1
 python train_recognizer.py --source_domain D2 --target_domain D3
 python train_recognizer.py --source_domain D3 --target_domain D1
 python train_recognizer.py --source_domain D3 --target_domain D2
+#--------------------------------------------------- test audio-infused recognizer ---------------------------------------
+python test_recognizer.py --source_domain D1 --target_domain D2
+python test_recognizer.py --source_domain D1 --target_domain D3
+python test_recognizer.py --source_domain D2 --target_domain D1
+python test_recognizer.py --source_domain D2 --target_domain D3
+python test_recognizer.py --source_domain D3 --target_domain D1
+python test_recognizer.py --source_domain D3 --target_domain D2
