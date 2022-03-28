@@ -9,7 +9,7 @@ import numpy as np
 import csv
 import random
 
-class EPICDOMAINAdapter(torch.utils.data.Dataset):
+class EPICDOMAINRecognizer(torch.utils.data.Dataset):
     def __init__(self, split='train', source_domain='D1', target_domain='D2', modality='rgb', cfg=None, use_audio=True):
         self.base_path = '/home/yzhang8/data/EPIC_KITCHENS_UDA/'
         source_train_file = pd.read_pickle('/home/yzhang8/data/EPIC_KITCHENS_UDA/'+source_domain+"_"+split+".pkl")

@@ -1,6 +1,6 @@
 from mmaction.apis import init_recognizer, inference_recognizer
 import torch
-from dataloader_transformer import EPICDOMAINAdapter, EPICDOMAIN
+from dataloader_recognizer import EPICDOMAINRecognizer, EPICDOMAIN
 import argparse
 import tqdm
 import os
@@ -24,9 +24,9 @@ from torch import nn, einsum
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-class Bridge(nn.Module):
+class Recognizer(nn.Module):
     def __init__(self):
-        super(Bridge, self).__init__()
+        super(Recognizer, self).__init__()
         self.delegate_vectors = nn.Parameter(torch.randn(8, 512))
         self.audio_fc = nn.Sequential(nn.Linear(512, 512),
                                       nn.BatchNorm1d(512),
@@ -70,7 +70,7 @@ class Bridge(nn.Module):
 
         return pred, audio_att1, audio_att22
 
-def train_one_step(model,attention_model, adapter, clip, spectrogram, labels, ):
+def train_one_step(model,attention_model, recognizer, clip, spectrogram, labels, ):
     #print(clip['imgs'].size())
     judge_label = (labels[:,1] == labels[:,0]).type(torch.FloatTensor).cuda()
     target_clip = clip['imgs'][:, 5:].cuda()
@@ -87,9 +87,12 @@ def train_one_step(model,attention_model, adapter, clip, spectrogram, labels, ):
 
     with torch.no_grad():
         v_feat = model.module.backbone.get_feature(clip)  # 16*5,1024,8,14,14
-        _, audio_feat4att, audio_feat = audio_model(spectrogram)  # 16,256,17,63
+        _, audio_feat4att, _ = audio_model(spectrogram)  # 16,256,17,63
+        _,audio_feat = audio_cls_model(audio_feat4att)
+
         target_v_feat = model.module.backbone.get_feature(target_clip)
-        _, target_audio_feat4att, target_audio_feat = audio_model(target_spectrogram)
+        _, target_audio_feat4att, _ = audio_model(target_spectrogram)
+        _,target_audio_feat = audio_cls_model(target_audio_feat4att)
 
         channel_att = attention_model(audio_feat4att.detach())
         channel_att = channel_att.unsqueeze(1).repeat(1,5,1)
@@ -110,8 +113,8 @@ def train_one_step(model,attention_model, adapter, clip, spectrogram, labels, ):
         v_feat = v_feat.view(b, n, 2048)
         target_v_feat = target_v_feat.view(b, n, 2048)
 
-    predict1, audio_att1, audio_att2 = adapter(v_feat.detach(), audio_feat.detach(), target=False)
-    target_predict1, _, _ = adapter(target_v_feat.detach(), target_audio_feat.detach(), target=True)
+    predict1, audio_att1, audio_att2 = recognizer(v_feat.detach(), audio_feat.detach(), target=False)
+    target_predict1, _, _ = recognizer(target_v_feat.detach(), target_audio_feat.detach(), target=True)
 
     loss = criterion(predict1, labels)
 
@@ -122,11 +125,11 @@ def train_one_step(model,attention_model, adapter, clip, spectrogram, labels, ):
 
     optim.zero_grad()
     loss.backward()
-    #nn.utils.clip_grad_norm_(adapter.parameters(), max_norm=1.0, norm_type=2)
+    #nn.utils.clip_grad_norm_(recognizer.parameters(), max_norm=1.0, norm_type=2)
     optim.step()
     return predict1, loss
 
-def validate_one_step(model,attention_model, adapter, clip, spectrogram, labels):
+def validate_one_step(model,attention_model, recognizer, clip, spectrogram, labels):
     clip = clip['imgs'].cuda()
     b,n,c,f,h,w = clip.size()
     clip = clip.view(b*n, c, f, h, w)
@@ -135,7 +138,8 @@ def validate_one_step(model,attention_model, adapter, clip, spectrogram, labels)
 
     with torch.no_grad():
         v_feat = model.module.backbone.get_feature(clip)  # 16,1024,8,14,14
-        _, audio_feat4att, audio_feat = audio_model(spectrogram)  # 16,256,17,63
+        _, audio_feat4att, _ = audio_model(spectrogram)  # 16,256,17,63
+        _,audio_feat = audio_cls_model(audio_feat4att)
 
         channel_att = attention_model(audio_feat4att.detach())
         channel_att = channel_att.unsqueeze(1).repeat(1,5,1)
@@ -146,7 +150,7 @@ def validate_one_step(model,attention_model, adapter, clip, spectrogram, labels)
         v_feat = F.adaptive_max_pool3d(v_feat, (1,1,1))
         v_feat = v_feat.flatten(1)
         v_feat = v_feat.view(b, n, 2048)
-        predict1,_,_ = adapter(v_feat, audio_feat, target=True)
+        predict1,_,_ = recognizer(v_feat, audio_feat, target=True)
 
     loss = criterion(predict1, labels)
 
@@ -196,9 +200,17 @@ if __name__ == '__main__':
     audio_model = torch.nn.DataParallel(audio_model)
     audio_model.eval()
 
-    adapter = Bridge()
-    adapter = adapter.cuda()
-    adapter = torch.nn.DataParallel(adapter)
+    audio_cls_model = AudioAttGenModule()
+    audio_cls_model.fc = nn.Linear(512, 8)
+    audio_cls_model = audio_cls_model.cuda()
+    checkpoint = torch.load("checkpoints/best_%s2%s_audio.pt")
+    audio_cls_model.load_state_dict(checkpoint['audio_state_dict'])
+    audio_cls_model = torch.nn.DataParallel(audio_cls_model)
+    audio_cls_model.eval()
+
+    recognizer = Recognizer()
+    recognizer = recognizer.cuda()
+    recognizer = torch.nn.DataParallel(recognizer)
 
     base_path = "checkpoints/"
     if not os.path.exists(base_path):
@@ -213,7 +225,7 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()#nn.BCEWithLogitsLoss()
     criterion = criterion.cuda()
 
-    optim = torch.optim.Adam(list(adapter.parameters()), lr=lr, weight_decay=1e-4)
+    optim = torch.optim.Adam(list(recognizer.parameters()), lr=lr, weight_decay=1e-4)
     scheduler = lr_scheduler.StepLR(optim, step_size=3, gamma=0.1)
     train_dataset = EPICDOMAINAdapter(split='train', source_domain=args.source_domain, target_domain=args.target_domain,modality='rgb', cfg=cfg)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -236,14 +248,14 @@ if __name__ == '__main__':
                 count = 0
                 total_loss = 0
                 print(split)
-                adapter.train(split == 'train')
+                recognizer.train(split == 'train')
                 with tqdm.tqdm(total=len(dataloaders[split])) as pbar:
                     for (i, (clip, spectrogram, labels)) in enumerate(dataloaders[split]):
                         # clip, 16,10,2,8,224,224
                         if split=='train':
-                            predict1, loss = train_one_step(model, attention_model, adapter, clip, spectrogram, labels,)
+                            predict1, loss = train_one_step(model, attention_model, recognizer, clip, spectrogram, labels,)
                         else:
-                            predict1, loss = validate_one_step(model, attention_model, adapter, clip, spectrogram,
+                            predict1, loss = validate_one_step(model, attention_model, recognizer, clip, spectrogram,
                                                                labels, )
                         total_loss += loss.item() * batch_size
                         _, predict = torch.max(predict1.detach().cpu(), dim=1)
@@ -265,7 +277,7 @@ if __name__ == '__main__':
         BestEpoch = epoch_i
         save = {
             # 'state_dict': model.state_dict(),
-            'adapter_state_dict': adapter.state_dict(),
+            'adapter_state_dict': recognizer.state_dict(),
             'best_acc': BestAcc
         }
 
