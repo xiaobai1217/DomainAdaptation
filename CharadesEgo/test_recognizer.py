@@ -187,7 +187,9 @@ for (i, (clip, labels, spectrogram, sample1)) in enumerate(test_dataloader):
 
     predict_list = []
     with torch.no_grad():
-        _,audio_feat,audiofeat4trans = audio_model(spectrogram)
+        _,audio_feat,_ = audio_model(spectrogram)
+        _,audiofeat4trans = audio_cls_model(audio_feat)
+
         channel_att, channel_att2 = attention_model(audio_feat.detach())
 
         for j in range(0,clip.size(0)):
