@@ -252,7 +252,7 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()#nn.BCEWithLogitsLoss()
     criterion = criterion.cuda()
 
-    optim = torch.optim.Adam(list(adapter.parameters()), lr=lr, weight_decay=1e-4)
+    optim = torch.optim.Adam(list(recognizer.parameters()), lr=lr, weight_decay=1e-4)
     scheduler = lr_scheduler.StepLR(optim, step_size=3, gamma=0.1)
     train_dataset = EPICDOMAINAdapter(split='train', source_domain=args.source_domain, target_domain=args.target_domain,modality='rgb', cfg=cfg)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
