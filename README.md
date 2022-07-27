@@ -2,7 +2,7 @@
 
 More info can be found on our [project page](https://xiaobai1217.github.io/DomainAdaptation/)
 
-**:star2: We won the 2nd place in the UDA track, [EPIC-Kitchens Challenge @CVPR 2022](https://epic-kitchens.github.io/2022). :star2:**
+### :star2: We won the 2nd place in the UDA track, [EPIC-Kitchens Challenge @CVPR 2022](https://epic-kitchens.github.io/2022). :star2:
 
 <img width="400" alt="1st-figure" src="https://user-images.githubusercontent.com/22721775/159116800-2df8b1f2-c622-4e4e-8e9a-53be7bc1ae93.png">
 
